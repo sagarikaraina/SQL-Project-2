@@ -42,27 +42,7 @@ order by 3,4 desc)
 select campaign_name,category,round(((qty_after_promo-qty_before_promo)/qty_before_promo * 100),2) as Incremental_sold_qty_pct,row_number() over() as rank_order
 from cte order by 3 desc;
 
-#5
--- my soln with drawback of rownumber,unable to display top 5 products 
-with cte as(
-SELECT distinct p.product_name,sum(base_price*`quantity_sold(before_promo)`) as `total_revenue(before_promo)`,
-case
-	when promo_type like '50%' or promo_type like 'BOGOF%' then sum(base_price*(1-0.5)*`quantity_sold(after_promo)`) 
-	when promo_type like '25%' then sum(base_price*(1-0.25)*`quantity_sold(after_promo)`) 
-	when promo_type like '33%' then sum(base_price*(1-0.33)*`quantity_sold(after_promo)`) 
-	when promo_type like '500%' then sum((base_price-500)*`quantity_sold(after_promo)`)
-end	`total_revenue(after_promo)`
-from fact_events e
-join dim_products p
-on p.product_code=e.product_code
-group by p.product_name,promo_type)
-select distinct p.product_name,p.category,100*(`total_revenue(after_promo)`-`total_revenue(before_promo)`)/`total_revenue(before_promo)` as ir_pct,row_number() over(partition by category) rn from cte
-join dim_products p
-on p.product_name=cte.product_name
-order by category,ir_pct desc ;
-
---
-#5 chatgpts solutions tackling rownumber problem
+#5 
 WITH cte AS (
     SELECT
         product_name,
@@ -90,9 +70,3 @@ SELECT product_name, category, ir_pct
 FROM cte
 WHERE rn <= 5
 ORDER BY category, ir_pct DESC;
-
-
-
-
-
-
